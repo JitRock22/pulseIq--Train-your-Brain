@@ -3,17 +3,12 @@
 // const sendMail = async (email, otp) => {
 //   // 1. Create transporter inside or outside the function
 //   const transporter = nodemailer.createTransport({
-//   host: 'smtp.gmail.com',
-//   port: 465, // Use 465 for SSL (More stable on Render)
-//   secure: true, // true for 465, false for other ports
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-//   // Add a timeout so it doesn't hang forever
-//   connectionTimeout: 10000, // 10 seconds
-//   greetingTimeout: 10000,
-// });
+//     service: 'gmail',
+//     auth: {
+//       user: process.env.EMAIL_USER, // Should be contact.preplytics@gmail.com
+//       pass: process.env.EMAIL_PASS, // Your 16-character App Password
+//     },
+//   });
 
 //   // 2. Fix the log (optional, but prevents ReferenceError)
 //   console.log(`Attempting to send OTP to: ${email}`);
@@ -68,23 +63,51 @@
 // module.exports = sendMail;
 
 
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const sendMail = async (email, otp) => {
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'PulseIQ <onboarding@resend.dev>', // You can verify your own domain later
-      to: email,
-      subject: 'Your Verification Code',
-      html: `<strong>Your OTP is ${otp}</strong>`, // Use your joyful HTML here!
-    });
+  console.log('Environment check:', {
+    EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not set',
+    NODE_ENV: process.env.NODE_ENV
+  });
 
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    debug: true, // Enable debug output
+    logger: true
+  });
+
+  // Verify connection
+  transporter.verify(function(error, success) {
     if (error) {
-      return console.error({ error });
+      console.log('SMTP connection error:', error);
+    } else {
+      console.log('SMTP server is ready to take our messages');
     }
-    console.log({ data });
-  } catch (err) {
-    console.error("Resend Error:", err);
+  });
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"PulseIQ Auth" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '✨ Your PulseIQ Verification Code',
+      // ... rest of your email content
+    });
+    
+    console.log('Message sent: %s', info.messageId);
+    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    
+    return info;
+  } catch (error) {
+    console.error('Full error details:', {
+      message: error.message,
+      code: error.code,
+      command: error.command
+    });
+    throw error;
   }
 };
