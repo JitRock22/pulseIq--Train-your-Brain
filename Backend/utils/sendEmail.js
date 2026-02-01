@@ -1,68 +1,90 @@
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
+
+// const sendMail = async (email, otp) => {
+//   // 1. Create transporter inside or outside the function
+//   const transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465, // Use 465 for SSL (More stable on Render)
+//   secure: true, // true for 465, false for other ports
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+//   // Add a timeout so it doesn't hang forever
+//   connectionTimeout: 10000, // 10 seconds
+//   greetingTimeout: 10000,
+// });
+
+//   // 2. Fix the log (optional, but prevents ReferenceError)
+//   console.log(`Attempting to send OTP to: ${email}`);
+
+//   try {
+//     await transporter.sendMail({
+//   from: `"PulseIQ Auth" <${process.env.EMAIL_USER}>`,
+//   to: email,
+//   subject: '✨ Your PulseIQ Verification Code',
+//   text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+//   html: `
+//     <div style="background-color: #f0f4f8; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+//       <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+//         <div style="background-color: #1a3a8a; background-image: linear-gradient(135deg, #1a3a8a 0%, #4f46e5 100%); padding: 30px; text-align: center;">
+//           <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1px;">Welcome!</h1>
+//           <p style="color: #e0e7ff; margin-top: 10px; font-size: 16px;">We're excited to have you on board.</p>
+//         </div>
+
+//         <div style="padding: 30px; text-align: center; color: #334155;">
+//           <h2 style="font-size: 20px; margin-bottom: 10px;">Verify Your Identity</h2>
+//           <p style="font-size: 16px; line-height: 1.5;">To get started with PulseIQ, please use the secure verification code below:</p>
+          
+//           <div style="margin: 30px 0;">
+//             <span style="display: inline-block; background: #f1f5f9; color: #1e3a8a; font-size: 36px; font-weight: 700; letter-spacing: 8px; padding: 15px 30px; border-radius: 8px; border: 2px dashed #4f46e5;">
+//               ${otp}
+//             </span>
+//           </div>
+
+//           <p style="font-size: 14px; color: #64748b;">This code is valid for <span style="color: #ef4444; font-weight: 600;">5 minutes</span>.</p>
+//         </div>
+
+//         <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+//           <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+//             If you didn't request this, you can safely ignore this email.
+//           </p>
+//           <p style="font-size: 12px; color: #94a3b8; margin-top: 5px; font-weight: bold;">
+//             Team PulseIQ
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   `,
+// });
+//     console.log("Email sent successfully!");
+//   } catch (error) {
+//     console.error("Nodemailer Error:", error);
+//     throw error; // Re-throw so your controller can handle the failure
+//   }
+// };
+
+// // 4. Ensure the export name matches the function name
+// module.exports = sendMail;
+
+
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendMail = async (email, otp) => {
-  // 1. Create transporter inside or outside the function
-  const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465, // Use 465 for SSL (More stable on Render)
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  // Add a timeout so it doesn't hang forever
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
-});
-
-  // 2. Fix the log (optional, but prevents ReferenceError)
-  console.log(`Attempting to send OTP to: ${email}`);
-
   try {
-    await transporter.sendMail({
-  from: `"PulseIQ Auth" <${process.env.EMAIL_USER}>`,
-  to: email,
-  subject: '✨ Your PulseIQ Verification Code',
-  text: `Your OTP is ${otp}. It expires in 5 minutes.`,
-  html: `
-    <div style="background-color: #f0f4f8; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-      <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <div style="background-color: #1a3a8a; background-image: linear-gradient(135deg, #1a3a8a 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1px;">Welcome!</h1>
-          <p style="color: #e0e7ff; margin-top: 10px; font-size: 16px;">We're excited to have you on board.</p>
-        </div>
+    const { data, error } = await resend.emails.send({
+      from: 'PulseIQ <onboarding@resend.dev>', // You can verify your own domain later
+      to: email,
+      subject: 'Your Verification Code',
+      html: `<strong>Your OTP is ${otp}</strong>`, // Use your joyful HTML here!
+    });
 
-        <div style="padding: 30px; text-align: center; color: #334155;">
-          <h2 style="font-size: 20px; margin-bottom: 10px;">Verify Your Identity</h2>
-          <p style="font-size: 16px; line-height: 1.5;">To get started with PulseIQ, please use the secure verification code below:</p>
-          
-          <div style="margin: 30px 0;">
-            <span style="display: inline-block; background: #f1f5f9; color: #1e3a8a; font-size: 36px; font-weight: 700; letter-spacing: 8px; padding: 15px 30px; border-radius: 8px; border: 2px dashed #4f46e5;">
-              ${otp}
-            </span>
-          </div>
-
-          <p style="font-size: 14px; color: #64748b;">This code is valid for <span style="color: #ef4444; font-weight: 600;">5 minutes</span>.</p>
-        </div>
-
-        <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-          <p style="font-size: 12px; color: #94a3b8; margin: 0;">
-            If you didn't request this, you can safely ignore this email.
-          </p>
-          <p style="font-size: 12px; color: #94a3b8; margin-top: 5px; font-weight: bold;">
-            Team PulseIQ
-          </p>
-        </div>
-      </div>
-    </div>
-  `,
-});
-    console.log("Email sent successfully!");
-  } catch (error) {
-    console.error("Nodemailer Error:", error);
-    throw error; // Re-throw so your controller can handle the failure
+    if (error) {
+      return console.error({ error });
+    }
+    console.log({ data });
+  } catch (err) {
+    console.error("Resend Error:", err);
   }
 };
-
-// 4. Ensure the export name matches the function name
-module.exports = sendMail;
