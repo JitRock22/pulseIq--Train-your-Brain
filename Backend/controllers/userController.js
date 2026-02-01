@@ -34,11 +34,11 @@ const sendOTP = asyncHandler(async (req, res) => {
         { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    if (process.env.NODE_ENV === 'development') {
-        console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
-    } else {
+    // if (process.env.NODE_ENV === 'development') {
+    //     console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+    // } else {
         await sendEmail(email, otp);
-    }
+    // }
 
     res.status(200).json({ message: "OTP sent successfully" });
 
