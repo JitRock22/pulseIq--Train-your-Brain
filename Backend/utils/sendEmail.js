@@ -3,12 +3,17 @@ const nodemailer = require('nodemailer');
 const sendMail = async (email, otp) => {
   // 1. Create transporter inside or outside the function
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, // Should be contact.preplytics@gmail.com
-      pass: process.env.EMAIL_PASS, // Your 16-character App Password
-    },
-  });
+  host: 'smtp.gmail.com',
+  port: 465, // Use 465 for SSL (More stable on Render)
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  // Add a timeout so it doesn't hang forever
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+});
 
   // 2. Fix the log (optional, but prevents ReferenceError)
   console.log(`Attempting to send OTP to: ${email}`);
