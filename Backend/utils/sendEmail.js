@@ -30,7 +30,7 @@ const nodemailer = require('nodemailer');
 //         <div style="padding: 30px; text-align: center; color: #334155;">
 //           <h2 style="font-size: 20px; margin-bottom: 10px;">Verify Your Identity</h2>
 //           <p style="font-size: 16px; line-height: 1.5;">To get started with PulseIQ, please use the secure verification code below:</p>
-          
+
 //           <div style="margin: 30px 0;">
 //             <span style="display: inline-block; background: #f1f5f9; color: #1e3a8a; font-size: 36px; font-weight: 700; letter-spacing: 8px; padding: 15px 30px; border-radius: 8px; border: 2px dashed #4f46e5;">
 //               ${otp}
@@ -70,19 +70,22 @@ const sendMail = async (email, otp) => {
   });
 
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    debug: true, // Enable debug output
-    logger: true
+    // Add these Render-specific settings
+    socketTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000, // 30 seconds
+    connectionTimeout: 10000,
+    pool: true, // Use connection pooling
+    maxConnections: 5,
+    maxMessages: 10,
   });
 
   // Verify connection
-  transporter.verify(function(error, success) {
+  transporter.verify(function (error, success) {
     if (error) {
       console.log('SMTP connection error:', error);
     } else {
@@ -96,8 +99,8 @@ const sendMail = async (email, otp) => {
       to: email,
       subject: '✨ Your PulseIQ Verification Code',
       // ... rest of your email content
-        text: `Your OTP is ${otp}. It expires in 5 minutes.`,
-  html: `
+      text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+      html: `
     <div style="background-color: #f0f4f8; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
       <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         <div style="background-color: #1a3a8a; background-image: linear-gradient(135deg, #1a3a8a 0%, #4f46e5 100%); padding: 30px; text-align: center;">
@@ -130,10 +133,10 @@ const sendMail = async (email, otp) => {
     </div>
   `,
     });
-    
+
     console.log('Message sent: %s', info.messageId);
     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-    
+
     return info;
   } catch (error) {
     console.error('Full error details:', {
