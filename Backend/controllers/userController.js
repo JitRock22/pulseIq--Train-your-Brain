@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/userSchema');
 const OTP = require('../models/otpSchema');
-const sendEmail = require('../utils/sendEmail');
+const sendMail = require('../utils/sendEmail');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -37,7 +37,7 @@ const sendOTP = asyncHandler(async (req, res) => {
     // if (process.env.NODE_ENV === 'development') {
     //     console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
     // } else {
-        await sendEmail(email, otp);
+        await sendMail(email, otp);
     // }
 
     res.status(200).json({ message: "OTP sent successfully" });
